@@ -36,11 +36,46 @@ public class Block : MonoBehaviour
         } else if (Input.GetKeyDown(KeyCode.RightArrow))
         {
             transform.RotateAround(transform.TransformPoint(rotationPoint), new Vector3(0, 0, 1), 90);
+
             if (!GameMaster.ValidMove(transform))
+            {
                 transform.RotateAround(transform.TransformPoint(rotationPoint), new Vector3(0, 0, 1), -90);
+            } else
+            {
+                foreach (Transform children in transform)
+                {
+                    var scale = children.transform.localScale;
+                    children.transform.localScale = new Vector3(scale.y, scale.x, scale.z);
+                }
+
+                foreach (Transform children in ghost.transform)
+                {
+                    var scale = children.transform.localScale;
+                    children.transform.localScale = new Vector3(scale.y, scale.x, scale.z);
+                }
+            }
 
             ghost.transform.rotation = transform.rotation;
             SetGhostPosition();
+        }
+
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            if (GameMaster.heldBlock == null)
+            {
+                GameMaster.heldBlock = Instantiate(gameObject, GameMaster.heldBlockPos, Quaternion.identity);
+                GameMaster.heldBlock.GetComponent<Block>().enabled = false;
+                FindObjectOfType<Spawner>().newBlock(); // TODO if blocks are preload
+            } else
+            {
+                FindObjectOfType<Spawner>().newBlock(GameMaster.heldBlock.name.Replace("(Clone)", ""));
+                Destroy(GameMaster.heldBlock);
+                GameMaster.heldBlock = Instantiate(gameObject, GameMaster.heldBlockPos, Quaternion.identity);
+                GameMaster.heldBlock.GetComponent<Block>().enabled = false;
+            }
+
+            Destroy(gameObject);
+            Destroy(ghost);
         }
 
         if (Input.GetKeyDown(KeyCode.Space))
@@ -70,7 +105,6 @@ public class Block : MonoBehaviour
             previousTime = Time.time;
         }
     }
-
     void SetGhostPosition()
     {
         ghost.transform.position = transform.position;

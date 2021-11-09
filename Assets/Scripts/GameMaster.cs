@@ -21,11 +21,16 @@ public class GameMaster : MonoBehaviour
     // init grid
     private int numberOfColumns = 3;
     private int maximumNumberOfMudas = 3;
-    
+
+    // held block
+    public static GameObject heldBlock;
+    public static Vector3 heldBlockPos = new Vector3(2, height + 1, 0);
+
     public GameObject Cell;
 
     void Start()
     {
+        /*
         for (int i = 0; i < numberOfColumns; i++)
         {
             int numberOfMudas = Random.Range(1, maximumNumberOfMudas + 1);
@@ -51,7 +56,7 @@ public class GameMaster : MonoBehaviour
                     grid[i, j] = c.transform;
                 }
             }
-        }
+        } */
     }
 
     public static void ClearedLine()
