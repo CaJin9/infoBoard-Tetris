@@ -301,6 +301,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rotationPoint: {x: 0.5, y: 0.5, z: 0}
+  xIdxAt: 0
+  yIdxAt: 0
+  numberOfColors: 2
 --- !u!1 &8708689629429479460
 GameObject:
   m_ObjectHideFlags: 0
