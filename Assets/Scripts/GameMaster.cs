@@ -173,6 +173,11 @@ public class GameMaster : MonoBehaviour
             {
                 b.SetGhostPosition();
             }
+            // clear empty gameobjects
+            if (objects[j].gameObject.activeInHierarchy && objects[j].gameObject.transform.childCount == 0 && objects[j].gameObject.name.Contains("(Clone)"))
+            {
+                Destroy(objects[j].gameObject);
+            }
         }
     }
 
