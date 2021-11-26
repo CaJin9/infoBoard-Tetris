@@ -181,7 +181,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: -1
+  m_SortingOrder: -2
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
   m_Color: {r: 0, g: 0.18529399, b: 0.31132078, a: 1}
   m_FlipX: 0
@@ -220,7 +220,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d77c4d30e8cbd4f468b910b254ce2c40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  particles: {fileID: 0}
+  impactPs: {fileID: 4571265510344768702, guid: 4e0194ae186855a44b971c3bed0302c7, type: 3}
+  glowMat: {fileID: 2100000, guid: 1be4274fb8a9ab14cb89ffbd0854bd91, type: 2}
   Cell: {fileID: 3739571496572241627, guid: c24db25b81719114a8032a9369494e99, type: 3}
 --- !u!1 &374404469
 GameObject:

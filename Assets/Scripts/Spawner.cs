@@ -36,18 +36,30 @@ public class Spawner : MonoBehaviour
             prevR = r;
             preview.Add(Instantiate(Blocks[r], PreviewLocation.position + i * Distance * Vector3.right, Quaternion.identity));
             preview[preview.Count - 1].GetComponent<Block>().enabled = false;
+            // set color
+            int rColor = Random.Range(0, GameMaster.TetrisColors.Length);
+            foreach (Transform children in preview[preview.Count - 1].transform)
+            {
+                children.GetComponent<SpriteRenderer>().color = GameMaster.TetrisColors[rColor];
+            }
         }
     }
 
-    public void newBlock(string name)
+    public void newBlock(string name, Color color)
     {
+        GameObject block = null;
         for (int i = 0; i < Blocks.Length; i++)
         {
             if (Blocks[i].name == name)
             {
-                Instantiate(Blocks[i], transform.position, Quaternion.identity);
+                block = Instantiate(Blocks[i], transform.position, Quaternion.identity);
                 break;
             }
+        }
+
+        foreach (Transform children in block.transform)
+        {
+            children.GetComponent<SpriteRenderer>().color = color;
         }
     }
 

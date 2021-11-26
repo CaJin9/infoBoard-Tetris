@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
+using System;
 
 public class GameMaster : MonoBehaviour
 {
@@ -36,6 +37,7 @@ public class GameMaster : MonoBehaviour
     public static GameObject heldBlock;
     public static Vector3 heldBlockPos = new Vector3(width - 3, height + 1, 0);
     public static bool alreadySwitched = false;
+    public static Color heldBlockColor;
 
     // Scoring System
     public static int points = 0;
@@ -43,21 +45,29 @@ public class GameMaster : MonoBehaviour
     private static int combo;
 
     // Animation
-    public GameObject particles;
-    private static float timeUntilCollapse = 0.2f;
-    private static float collapseDuration = 0.1f;
+    public static float timeUntilCollapse = 0.2f;
+    private static float collapseDuration = 0.05f;
     private static GameMaster instance;
+
+    // vfx
+    public Material glowMat;
+    private static Material glowMatStatic;
+
+    public static bool pause = true; // rotating & moving is still possible in pause
+    private static float pauseTimer = 0;
+    private static float pauseDuration = 0;
 
     public GameObject Cell;
 
+
     public static Color[] TetrisColors = new Color[] {
-        Color.blue,
-        Color.red,
-        Color.green,
-        Color.cyan,
-        Color.yellow,
-        Color.magenta,
-        new Color(1, 0.7f, 0)
+        new Color(20 / 255f, 45 / 255f, 85 / 255f),
+        new Color(121 / 255f, 185 / 255f, 231 / 255f),
+        new Color(109 / 255f, 115 / 255f, 126 / 255f),
+        new Color(77 / 255f, 178 / 255f, 107 / 255f),
+        new Color(218 / 255f, 190 / 255f, 91 / 255f),
+        new Color(233 / 255f, 70/ 255f, 100 / 255f),
+        new Color(195 / 255f, 130/ 255f, 255 / 255f)
     };
 
     private void Update()
@@ -67,10 +77,21 @@ public class GameMaster : MonoBehaviour
             Scene scene = SceneManager.GetActiveScene(); 
             SceneManager.LoadScene(scene.name);
         }
+
+        if (pause)
+        {
+            pauseTimer += Time.deltaTime;
+            if (pauseTimer > pauseDuration)
+            {
+                pauseTimer = 0;
+                pause = false;
+            }
+        }
     }
 
     void Start()
     {
+        glowMatStatic = glowMat;
         instance = this;
         scoreText = GameObject.Find("ScoreText").GetComponent<TextMeshProUGUI>();
         gameOverText = GameObject.Find("GameOverText").GetComponent<TextMeshProUGUI>();
@@ -134,15 +155,17 @@ public class GameMaster : MonoBehaviour
         scoreText.text = points.ToString();
     }
 
-    static IEnumerator wait(float sec, int i, int numberOfClearedlines)
+    static IEnumerator wait(float sec, int i, int[] numberOfLinesClearedPerRow)
     {
+        pause = true;
+        pauseDuration = sec + numberOfLinesClearedPerRow[numberOfLinesClearedPerRow.Length - 1] * collapseDuration;
         DeleteLine(i);
         yield return new WaitForSeconds(sec);
-        Collapse(i, numberOfClearedlines);
+        Collapse(i, numberOfLinesClearedPerRow);
         ClearedLine();
         
         var objects = FindObjectsOfType<Block>();
-        yield return new WaitForSeconds(numberOfClearedlines * collapseDuration);
+        yield return new WaitForSeconds(numberOfLinesClearedPerRow[numberOfLinesClearedPerRow.Length-1] * collapseDuration);
         for (int j = 0; j < objects.Length; j++)
         {
             var b = objects[j].GetComponent<Block>();
@@ -156,10 +179,12 @@ public class GameMaster : MonoBehaviour
     public static void CheckForLines()
     {
         int numberOfClearedlines = 0;
+        int[] numberOfLinesClearedPerRow = new int[width];
 
 
-        for (int i = width - 1; i >= 0; i--)
+        for (int i = 0; i < width; i++)
         {
+            numberOfLinesClearedPerRow[i] = numberOfClearedlines;
             if (HasLine(i))
             {
                 numberOfClearedlines++;
@@ -170,10 +195,7 @@ public class GameMaster : MonoBehaviour
         {
             if (HasLine(i))
             {
-                instance.StartCoroutine(wait(timeUntilCollapse, i, numberOfClearedlines));
-                //DeleteLine(i);
-                //Collapse(i, numberOfClearedlines);
-                //ClearedLine();
+                instance.StartCoroutine(wait(timeUntilCollapse, i, numberOfLinesClearedPerRow));
             }
         }
 
@@ -215,14 +237,14 @@ public class GameMaster : MonoBehaviour
     {
         for (int j = 0; j < height; j++)
         {
+            //grid[i, j].GetComponent<SpriteRenderer>().material = glowMatStatic;
             LeanTween.color(grid[i, j], new Color(1, 1, 1, 1), timeUntilCollapse);
             Destroy(grid[i, j].gameObject, timeUntilCollapse);
-            
             grid[i, j] = null;
         }
     }
 
-    private static void Collapse(int i, int numberOfClearedLines)
+    private static void Collapse(int i, int[] numberOfLinesClearedPerRow)
     {
         for (int y = i; y < width; y++)
         {
@@ -232,7 +254,7 @@ public class GameMaster : MonoBehaviour
                 {
                     grid[y - 1, j] = grid[y, j];
                     grid[y, j] = null;
-                    LeanTween.move(grid[y - 1, j], grid[y - 1, j].transform.position - new Vector3(numberOfClearedLines, 0, 0), collapseDuration * numberOfClearedLines);
+                    LeanTween.move(grid[y - 1, j], grid[y - 1, j].transform.position - new Vector3(numberOfLinesClearedPerRow[y], 0, 0), collapseDuration * numberOfLinesClearedPerRow[y]);
                 }
             }
         }

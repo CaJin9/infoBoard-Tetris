@@ -18,76 +18,7 @@ public class Block : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        // set color
 
-        // get max number of tiles in a line
-        //Color primaryColor = GameMaster.TetrisColors[Random.Range(0, GameMaster.TetrisColors.Length)];
-        //bool horizontal = Random.Range(0, 2) == 0;
-
-        //List<int> usedIdc = new();
-        //int idx = Random.Range(0, GameMaster.TetrisColors.Length);
-        //usedIdc.Add(idx);
-
-        //foreach (Transform children in transform)
-        //{
-        //    if (xIdxAt == -1 && yIdxAt == -1) // Exception for I_Block
-        //    {
-        //        if (horizontal)
-        //        {
-        //            while (usedIdc.Contains(idx))
-        //            {
-        //                idx = Random.Range(0, GameMaster.TetrisColors.Length);
-        //            }
-        //            usedIdc.Add(idx);
-        //            children.GetComponent<SpriteRenderer>().color = GameMaster.TetrisColors[idx];
-        //        }
-        //        else
-        //        {
-        //            children.GetComponent<SpriteRenderer>().color = primaryColor;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        if (horizontal)
-        //        {
-        //            if (xIdxAt >= 0 && Mathf.RoundToInt(children.localPosition.x) == xIdxAt)
-        //            {
-        //                children.GetComponent<SpriteRenderer>().color = primaryColor;
-        //            }
-        //            else
-        //            {
-        //                if (usedIdc.Count < numberOfColors)
-        //                {
-        //                    while (usedIdc.Contains(idx))
-        //                    {
-        //                        idx = Random.Range(0, GameMaster.TetrisColors.Length);
-        //                    }
-        //                    usedIdc.Add(idx);
-        //                }
-        //                children.GetComponent<SpriteRenderer>().color = GameMaster.TetrisColors[idx];
-        //            }
-        //        }
-        //        else
-        //        {
-        //            if (yIdxAt >= 0 && Mathf.RoundToInt(children.localPosition.y) == yIdxAt)
-        //            {
-        //                children.GetComponent<SpriteRenderer>().color = primaryColor;
-        //            }
-        //            else
-        //            {
-        //                if (usedIdc.Count < numberOfColors)
-        //                {
-        //                    while (usedIdc.Contains(idx))
-        //                    {
-        //                        idx = Random.Range(0, GameMaster.TetrisColors.Length);
-        //                    }
-        //                    usedIdc.Add(idx);
-        //                }
-        //                children.GetComponent<SpriteRenderer>().color = GameMaster.TetrisColors[idx];
-        //            }
-        //        }
-        //    }
-        //}
 
         ghost = Instantiate(gameObject);
         ghost.GetComponent<Block>().enabled = false;
@@ -98,6 +29,7 @@ public class Block : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
         // move up or down
         if (!(Input.GetKey(KeyCode.UpArrow) && Input.GetKey(KeyCode.DownArrow)))
         {
@@ -172,17 +104,27 @@ public class Block : MonoBehaviour
         {
             if (GameMaster.heldBlock == null)
             {
+                foreach (Transform children in transform)
+                {
+                    GameMaster.heldBlockColor = children.GetComponent<SpriteRenderer>().color;
+                    break;
+                }
                 if (spritesRotated) RotateSpriteOrientation();
-
                 GameMaster.heldBlock = Instantiate(gameObject, GameMaster.heldBlockPos, Quaternion.identity);
                 GameMaster.heldBlock.GetComponent<Block>().enabled = false;
+
                 FindObjectOfType<Spawner>().newBlock();
             }
             else
             {
-                FindObjectOfType<Spawner>().newBlock(GameMaster.heldBlock.name.Replace("(Clone)", ""));
+                FindObjectOfType<Spawner>().newBlock(GameMaster.heldBlock.name.Replace("(Clone)", ""), GameMaster.heldBlockColor);
                 Destroy(GameMaster.heldBlock);
 
+                foreach (Transform children in transform)
+                {
+                    GameMaster.heldBlockColor = children.GetComponent<SpriteRenderer>().color;
+                    break;
+                }
                 if (spritesRotated) RotateSpriteOrientation();
                 GameMaster.heldBlock = Instantiate(gameObject, GameMaster.heldBlockPos, Quaternion.identity);
                 GameMaster.heldBlock.GetComponent<Block>().enabled = false;
@@ -193,37 +135,40 @@ public class Block : MonoBehaviour
             Destroy(ghost);
         }
 
-        // hard drop
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (!GameMaster.pause)
         {
-            GameMaster.AddPointsDrop((int)(transform.position.x - ghost.transform.position.x) * 2);
-            GoToLowestPoint();
-            previousTime -= (1 / GameMaster.updatesPerSecond); // execute next game loop immediately
-        }
-        // fall & soft drop
-        if (Time.time - previousTime > (Input.GetKey(KeyCode.LeftArrow) ? (1.0f / (GameMaster.updatesPerSecond * GameMaster.boostFallMultiplier)) : (1.0f / GameMaster.updatesPerSecond)))
-        {
-            transform.position -= new Vector3(1, 0, 0);
-            if (!GameMaster.ValidMove(transform))
+            // hard drop
+            if (Input.GetKeyDown(KeyCode.Space))
             {
-                transform.position += new Vector3(1, 0, 0);
-                this.enabled = false;
-                if (GameMaster.AddToGrid(transform))
-                {
-                    GameMaster.CheckForLines();
-                    Destroy(ghost);
-                    //FindObjectOfType<Spawner>().newBlock();
-                    //GameMaster.alreadySwitched = false;
-                } // else GAME OVER 
+                GameMaster.AddPointsDrop((int)(transform.position.x - ghost.transform.position.x) * 2);
+                GoToLowestPoint();
+                previousTime -= (1 / GameMaster.updatesPerSecond); // execute next game loop immediately
             }
-            else
+            // fall & soft drop
+            if (Time.time - previousTime > (Input.GetKey(KeyCode.LeftArrow) ? (1.0f / (GameMaster.updatesPerSecond * GameMaster.boostFallMultiplier)) : (1.0f / GameMaster.updatesPerSecond)))
             {
-                if (Input.GetKey(KeyCode.LeftArrow))
+                transform.position -= new Vector3(1, 0, 0);
+                if (!GameMaster.ValidMove(transform))
                 {
-                    GameMaster.AddPointsDrop(1);
+                    transform.position += new Vector3(1, 0, 0);
+                    this.enabled = false;
+                    if (GameMaster.AddToGrid(transform))
+                    {
+                        GameMaster.CheckForLines();
+                        Destroy(ghost);
+                        //FindObjectOfType<Spawner>().newBlock();
+                        //GameMaster.alreadySwitched = false;
+                    } // else GAME OVER 
                 }
+                else
+                {
+                    if (Input.GetKey(KeyCode.LeftArrow))
+                    {
+                        GameMaster.AddPointsDrop(1);
+                    }
+                }
+                previousTime = Time.time;
             }
-            previousTime = Time.time;
         }
     }
 
@@ -254,7 +199,6 @@ public class Block : MonoBehaviour
         }
     }
 
-
     void RotateSpriteOrientation()
     {
         spritesRotated = !spritesRotated;
@@ -270,8 +214,6 @@ public class Block : MonoBehaviour
             children.transform.localScale = new Vector3(scale.y, scale.x, scale.z);
         }
     }
-
-
 
     public void SetGhostPosition()
     {
