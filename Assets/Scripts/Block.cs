@@ -154,7 +154,7 @@ public class Block : MonoBehaviour
                     this.enabled = false;
                     if (GameMaster.AddToGrid(transform))
                     {
-                        GameMaster.CheckForLines();
+                        GameMaster.Execute(transform);
                         Destroy(ghost);
                         //FindObjectOfType<Spawner>().newBlock();
                         //GameMaster.alreadySwitched = false;

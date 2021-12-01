@@ -5,7 +5,7 @@ using UnityEngine;
 public class Spawner : MonoBehaviour
 {
     private List<GameObject> preview = new();
-    public int NumberOfPreviews = 1;
+    public int NumberOfPreviews = 2;
     public Transform PreviewLocation;
     public float Distance = 1;
     int prevR = -1;
@@ -37,10 +37,10 @@ public class Spawner : MonoBehaviour
             preview.Add(Instantiate(Blocks[r], PreviewLocation.position + i * Distance * Vector3.right, Quaternion.identity));
             preview[preview.Count - 1].GetComponent<Block>().enabled = false;
             // set color
-            int rColor = Random.Range(0, GameMaster.TetrisColors.Length);
+            int rColor = Random.Range(0, GameMaster.TetrisColorsStatic.Count);
             foreach (Transform children in preview[preview.Count - 1].transform)
             {
-                children.GetComponent<SpriteRenderer>().color = GameMaster.TetrisColors[rColor];
+                children.GetComponent<SpriteRenderer>().color = GameMaster.TetrisColorsStatic[rColor];
             }
         }
     }

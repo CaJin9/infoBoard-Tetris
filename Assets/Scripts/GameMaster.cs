@@ -4,6 +4,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
 using System;
+using UnityEngine.UI;
 
 public class GameMaster : MonoBehaviour
 {
@@ -29,10 +30,6 @@ public class GameMaster : MonoBehaviour
     private static TextMeshProUGUI gameOverText;
     private static int currentLvl = 1;
 
-    // init grid
-    private int numberOfColumns = 3;
-    private int maximumNumberOfMudas = 3;
-
     // held block
     public static GameObject heldBlock;
     public static Vector3 heldBlockPos = new Vector3(width - 3, height + 1, 0);
@@ -45,7 +42,7 @@ public class GameMaster : MonoBehaviour
     private static int combo;
 
     // Animation
-    public static float timeUntilCollapse = 0.2f;
+    public static float timeUntilCollapse = 0.1f;
     private static float collapseDuration = 0.05f;
     private static GameMaster instance;
 
@@ -53,22 +50,19 @@ public class GameMaster : MonoBehaviour
     public Material glowMat;
     private static Material glowMatStatic;
 
-    public static bool pause = true; // rotating & moving is still possible in pause
-    private static float pauseTimer = 0;
-    private static float pauseDuration = 0;
+    // Effect Bar
+    private static int effectBarValue;
+    public const int effectBarValueMax = 100;
+    public static EffectBar effectBar;
+
+    public static bool pause = false; // rotating & moving is still possible in pause .. pause to finish the animation
 
     public GameObject Cell;
+    public static GameObject CellStatic;
 
+    public Color[] TetrisColors;
 
-    public static Color[] TetrisColors = new Color[] {
-        new Color(20 / 255f, 45 / 255f, 85 / 255f),
-        new Color(121 / 255f, 185 / 255f, 231 / 255f),
-        new Color(109 / 255f, 115 / 255f, 126 / 255f),
-        new Color(77 / 255f, 178 / 255f, 107 / 255f),
-        new Color(218 / 255f, 190 / 255f, 91 / 255f),
-        new Color(233 / 255f, 70/ 255f, 100 / 255f),
-        new Color(195 / 255f, 130/ 255f, 255 / 255f)
-    };
+    public static List<Color> TetrisColorsStatic = new();
 
     private void Update()
     {
@@ -77,54 +71,24 @@ public class GameMaster : MonoBehaviour
             Scene scene = SceneManager.GetActiveScene(); 
             SceneManager.LoadScene(scene.name);
         }
-
-        if (pause)
-        {
-            pauseTimer += Time.deltaTime;
-            if (pauseTimer > pauseDuration)
-            {
-                pauseTimer = 0;
-                pause = false;
-            }
-        }
     }
 
     void Start()
     {
+        for (int i = 0; i < TetrisColors.Length; i++)
+        {
+            TetrisColorsStatic.Add(TetrisColors[i]);
+        }
+        LeanTween.init(width * height * 10);
+        CellStatic = Cell;
         glowMatStatic = glowMat;
         instance = this;
+        effectBar = GameObject.Find("EffectBar").GetComponent<EffectBar>(); 
         scoreText = GameObject.Find("ScoreText").GetComponent<TextMeshProUGUI>();
         gameOverText = GameObject.Find("GameOverText").GetComponent<TextMeshProUGUI>();
         gameOverText.enabled = false;
         levelText = GameObject.Find("LevelText").GetComponent<TextMeshProUGUI>();
         levelText.text = LEVELSTRING + currentLvl;
-        /*
-        for (int i = 0; i < numberOfColumns; i++)
-        {
-            int numberOfMudas = Random.Range(1, maximumNumberOfMudas + 1);
-            List<int> idc = new();
-            for (int m = 0; m < numberOfMudas; m++)
-            {
-                while (true)
-                {
-                    int temp = Random.Range(0, height);
-                    if (!idc.Contains(temp))
-                    {
-                        idc.Add(temp);
-                        break;
-                    }
-                }
-            }
-
-            for (int j = 0; j < height; j++)
-            {
-                if (!idc.Contains(j))
-                {
-                    var c = Instantiate(Cell, new Vector3(i, j, 0), Quaternion.identity);
-                    grid[i, j] = c.transform;
-                }
-            }
-        } */
     }
 
     private static void AddPoints(int numberOfClearedLines)
@@ -144,7 +108,9 @@ public class GameMaster : MonoBehaviour
             case 4:
                 points += 1200 * currentLvl * (combo + 1);
                 break;
-            default: break;
+            default: 
+                points += 3000 * numberOfClearedLines * currentLvl * (combo + 1); 
+                break;
         }
         scoreText.text = points.ToString();
     }
@@ -157,9 +123,7 @@ public class GameMaster : MonoBehaviour
 
     static IEnumerator wait(float sec, int i, int[] numberOfLinesClearedPerRow)
     {
-        pause = true;
-        pauseDuration = sec + numberOfLinesClearedPerRow[numberOfLinesClearedPerRow.Length - 1] * collapseDuration;
-        DeleteLine(i);
+        DeleteLine(i, sec);
         yield return new WaitForSeconds(sec);
         Collapse(i, numberOfLinesClearedPerRow);
         ClearedLine();
@@ -181,7 +145,21 @@ public class GameMaster : MonoBehaviour
         }
     }
 
-    public static void CheckForLines()
+    public static void Execute(Transform transform)
+    {
+        pause = true;
+        if (CheckIfColorsAlign(transform))
+        {
+            //instance.StartCoroutine(FillHoles());
+            instance.StartCoroutine(CollapseHoles());
+        } else
+        {
+            CheckForLines();
+        }
+        pause = false;
+    }
+
+    private static void CheckForLines()
     {
         int numberOfClearedlines = 0;
         int[] numberOfLinesClearedPerRow = new int[width];
@@ -200,7 +178,7 @@ public class GameMaster : MonoBehaviour
         {
             if (HasLine(i))
             {
-                instance.StartCoroutine(wait(timeUntilCollapse, i, numberOfLinesClearedPerRow));
+                instance.StartCoroutine(wait(timeUntilCollapse + (0.01f * numberOfClearedlines), i, numberOfLinesClearedPerRow));
             }
         }
 
@@ -238,13 +216,13 @@ public class GameMaster : MonoBehaviour
         return true;
     }
 
-    private static void DeleteLine(int i)
+    private static void DeleteLine(int i, float sec)
     {
         for (int j = 0; j < height; j++)
         {
             //grid[i, j].GetComponent<SpriteRenderer>().material = glowMatStatic;
-            LeanTween.color(grid[i, j], new Color(1, 1, 1, 1), timeUntilCollapse);
-            Destroy(grid[i, j].gameObject, timeUntilCollapse);
+            LeanTween.color(grid[i, j], new Color(1, 1, 1, 1), sec);
+            Destroy(grid[i, j].gameObject, sec);
             grid[i, j] = null;
         }
     }
@@ -263,6 +241,134 @@ public class GameMaster : MonoBehaviour
                 }
             }
         }
+    }
+
+    private static bool CheckIfColorsAlign(Transform transform)
+    {
+
+        foreach (Transform children in transform)
+        {
+            int roundedX = Mathf.RoundToInt(children.transform.position.x);
+            int roundedY = Mathf.RoundToInt(children.transform.position.y);
+
+            if (roundedX <= 0) break;
+
+            Color color = children.GetComponent<SpriteRenderer>().color;
+
+            if (CheckIfSmallestX(transform, roundedX, roundedY))
+            {
+                if (grid[roundedX - 1, roundedY] != null && grid[roundedX - 1, roundedY].GetComponent<SpriteRenderer>().color == color)
+                {
+                    effectBarValue += 20;
+                    effectBar.SetValue(effectBarValue);
+                    if (effectBarValue >= 100)
+                    {
+                        effectBarValue = 0;
+                        effectBar.SetValue(effectBarValue);
+                        return true; // return true if 100% was reached
+                    }
+                } else
+                {
+                    effectBarValue -= 5;
+                    effectBarValue = effectBarValue < 0 ? 0 : effectBarValue;
+                    effectBar.SetValue(effectBarValue);
+                }
+            }
+        }
+        return false;
+    }
+
+    private static IEnumerator FillHoles()
+    {
+        for (int x = 0; x < width; x++)
+        {
+            bool ColIsEmpty = true;
+            for (int y = 0; ColIsEmpty && y < height; y++)
+            {
+                if (grid[x,y])
+                    ColIsEmpty = false;
+            }
+
+            if (ColIsEmpty) break;
+
+            for (int y = 0; y < height; y++)
+            {
+                
+                if (grid[x, y] == null)
+                {
+                    grid[x, y] = Instantiate(CellStatic, new Vector3(x, y, 0), Quaternion.identity);
+                    yield return new WaitForSeconds(0.05f);
+                }
+            }
+        }
+        CheckForLines();
+    }
+
+    private static IEnumerator CollapseHoles()
+    {
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                if (grid[x, y] == null)
+                {
+                    // look for next block if there is any
+                    int numberOfCells = 0; // how far away is the next block
+                    int numberOfConsecutiveBlocks = 1; // how big is the chunk
+                    bool found = false;
+                    for (int xx = x; xx < width; xx++)
+                    {
+                        if (grid[xx, y] != null)
+                        {
+                            found = true;
+                            if (xx + 1 < width && grid[xx + 1, y] != null)
+                            {
+                                numberOfConsecutiveBlocks++;
+                            }
+                        } else
+                        {
+                            if (!found)
+                            {
+                                numberOfCells++;
+                            } else
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    if (found)
+                    {
+                        for (int k = 0; k < numberOfConsecutiveBlocks; k++)
+                        {
+                            grid[x + numberOfCells + k, y].transform.position -= Vector3.right * numberOfCells;
+                            grid[x + k, y] = grid[x + numberOfCells + k, y];
+                            grid[x + numberOfCells + k, y] = null;
+                        }
+                        x = 0;
+                        yield return new WaitForSeconds(0.2f);
+                    }
+                }
+            }
+        }
+        CheckForLines();
+    }
+
+    private static bool CheckIfSmallestX(Transform transform, int x, int y)
+    {
+        int smallestX = int.MaxValue;
+
+        foreach (Transform children in transform)
+        {
+            int roundedX = Mathf.RoundToInt(children.transform.position.x);
+            int roundedY = Mathf.RoundToInt(children.transform.position.y);
+
+            if (roundedY == y)
+            {
+                smallestX = roundedX < smallestX ? roundedX : smallestX; 
+            }
+        }
+
+        return smallestX == x;
     }
 
     public static bool AddToGrid(Transform transform)
