@@ -42,9 +42,10 @@ public class GameMaster : MonoBehaviour
     private static int combo;
 
     // Animation
-    public static float timeUntilCollapse = 0.1f;
+    public static float timeUntilCollapse = 0.2f;
     private static float collapseDuration = 0.05f;
     private static GameMaster instance;
+    private static float optimizationDuration = 0.2f;
 
     // vfx
     public Material glowMat;
@@ -259,7 +260,7 @@ public class GameMaster : MonoBehaviour
             {
                 if (grid[roundedX - 1, roundedY] != null && grid[roundedX - 1, roundedY].GetComponent<SpriteRenderer>().color == color)
                 {
-                    effectBarValue += 20;
+                    effectBarValue += 15;
                     effectBar.SetValue(effectBarValue);
                     if (effectBarValue >= 100)
                     {
@@ -340,12 +341,13 @@ public class GameMaster : MonoBehaviour
                     {
                         for (int k = 0; k < numberOfConsecutiveBlocks; k++)
                         {
-                            grid[x + numberOfCells + k, y].transform.position -= Vector3.right * numberOfCells;
+                            //grid[x + numberOfCells + k, y].transform.position -= Vector3.right * numberOfCells;
+                            LeanTween.move(grid[x + numberOfCells + k, y], grid[x + numberOfCells + k, y].transform.position - Vector3.right * numberOfCells, optimizationDuration);
                             grid[x + k, y] = grid[x + numberOfCells + k, y];
                             grid[x + numberOfCells + k, y] = null;
                         }
                         x = 0;
-                        yield return new WaitForSeconds(0.2f);
+                        yield return new WaitForSeconds(optimizationDuration);
                     }
                 }
             }

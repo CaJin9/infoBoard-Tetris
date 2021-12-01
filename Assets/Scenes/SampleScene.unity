@@ -183,7 +183,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: -2
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Color: {r: 0.1981132, g: 0.1981132, b: 0.1981132, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -222,6 +222,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   glowMat: {fileID: 2100000, guid: 1be4274fb8a9ab14cb89ffbd0854bd91, type: 2}
   Cell: {fileID: 3739571496572241627, guid: c24db25b81719114a8032a9369494e99, type: 3}
+  TetrisColors:
+  - {r: 0.42745098, g: 0.4509804, b: 0.49411765, a: 1}
+  - {r: 0.16470589, g: 0.35686275, b: 0.654902, a: 1}
+  - {r: 0.4745098, g: 0.7254902, b: 0.90588236, a: 1}
+  - {r: 0.3019608, g: 0.69803923, b: 0.42352942, a: 1}
+  - {r: 0.98039216, g: 0.74509805, b: 0.35686275, a: 1}
+  - {r: 0.9137255, g: 0.27450982, b: 0.39607844, a: 1}
+  - {r: 0.7647059, g: 0.50980395, b: 1, a: 1}
 --- !u!1 &333981973
 GameObject:
   m_ObjectHideFlags: 0
