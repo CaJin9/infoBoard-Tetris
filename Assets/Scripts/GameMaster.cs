@@ -92,6 +92,7 @@ public class GameMaster : MonoBehaviour
         levelText.text = LEVELSTRING + currentLvl;
     }
 
+    // TODO NEXTBLOCK WENN COLLAPSE FERTIG IST
     private static void AddPoints(int numberOfClearedLines)
     {
         switch (numberOfClearedLines)
