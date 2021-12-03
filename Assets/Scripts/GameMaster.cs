@@ -14,7 +14,7 @@ public class GameMaster : MonoBehaviour
 
     // board
     public static int height = 10;
-    public static int width = 24;
+    public static int width = 25;
     public static GameObject[,] grid = new GameObject[width, height];
 
     // controls
@@ -92,7 +92,6 @@ public class GameMaster : MonoBehaviour
         levelText.text = LEVELSTRING + currentLvl;
     }
 
-    // TODO NEXTBLOCK WENN COLLAPSE FERTIG IST
     private static void AddPoints(int numberOfClearedLines)
     {
         switch (numberOfClearedLines)

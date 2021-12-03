@@ -88,7 +88,10 @@ public class Block : MonoBehaviour
             if (!GameMaster.ValidMove(transform))
             {
                 transform.RotateAround(transform.TransformPoint(rotationPoint), new Vector3(0, 0, 1), -90);
-                CheckRotationAtEdges(1);
+                if (!CheckRotationAtEdges(1))
+                {
+                    CheckRotationTSpinStyle();
+                }
             }
             else
             {
@@ -172,7 +175,16 @@ public class Block : MonoBehaviour
         }
     }
 
-    void CheckRotationAtEdges(int n) // n = number to move away from edge
+    void CheckRotationTSpinStyle()
+    {
+        transform.position -= new Vector3(1, 0, 0);
+        if (!CheckRotationAtEdges(1))
+        {
+            transform.position += new Vector3(1, 0, 0);
+        }
+    }
+
+    bool CheckRotationAtEdges(int n) // n = number to move away from edge
     {
         transform.position += new Vector3(0, n, 0);
         transform.RotateAround(transform.TransformPoint(rotationPoint), new Vector3(0, 0, 1), 90);
@@ -188,14 +200,18 @@ public class Block : MonoBehaviour
                 transform.RotateAround(transform.TransformPoint(rotationPoint), new Vector3(0, 0, 1), -90);
 
                 if (n == 1)
-                    CheckRotationAtEdges(2);
+                    return CheckRotationAtEdges(2);
+
+                return false;
             } else
             {
                 RotateSpriteOrientation();
+                return true;
             }
         } else
         {
             RotateSpriteOrientation();
+            return true;
         }
     }
 
