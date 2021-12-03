@@ -18,8 +18,6 @@ public class Block : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
-
         ghost = Instantiate(gameObject);
         ghost.GetComponent<Block>().enabled = false;
         SetGhostPosition();
@@ -159,8 +157,6 @@ public class Block : MonoBehaviour
                     {
                         GameMaster.Execute(transform);
                         Destroy(ghost);
-                        //FindObjectOfType<Spawner>().newBlock();
-                        //GameMaster.alreadySwitched = false;
                     } // else GAME OVER 
                 }
                 else
@@ -177,6 +173,7 @@ public class Block : MonoBehaviour
 
     void CheckRotationTSpinStyle()
     {
+        // go 1 to the left and check if any rotations are possible. if not go back to the right
         transform.position -= new Vector3(1, 0, 0);
         if (!CheckRotationAtEdges(1))
         {
