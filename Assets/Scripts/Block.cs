@@ -5,9 +5,6 @@ using UnityEngine;
 public class Block : MonoBehaviour
 {
     public Vector3 rotationPoint;
-    public int xIdxAt;
-    public int yIdxAt;
-    public int numberOfColors;
 
     private float previousTime;
     private GameObject ghost = null;
@@ -15,13 +12,21 @@ public class Block : MonoBehaviour
     private float holdTime = 0;
     private bool spritesRotated = false;
 
+    public Sprite ghostSprite;
+
     // Start is called before the first frame update
     void Start()
     {
         ghost = Instantiate(gameObject);
+        foreach (Transform children in ghost.transform)
+        {
+            children.GetComponent<SpriteRenderer>().sprite = ghostSprite;
+            children.localScale = 0.9f * Vector3.one;
+        }
+       
         ghost.GetComponent<Block>().enabled = false;
         SetGhostPosition();
-        SetGhostOpacity(0.2f);
+        SetGhostOpacity(1f);
     }
 
     // Update is called once per frame
