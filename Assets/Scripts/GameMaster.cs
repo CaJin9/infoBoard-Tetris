@@ -24,7 +24,7 @@ public class GameMaster : MonoBehaviour
     // game state
     public static int clearedLines = 0;
     private const int numberOfLinesForLvlUp = 10;
-    private const float LvlUpIncrement = 0.2f;
+    private const float LvlUpIncrement = 0.3f;
     private const string LEVELSTRING = "Level: ";
     private static TextMeshProUGUI levelText;
     private static TextMeshProUGUI gameOverText;
@@ -153,9 +153,15 @@ public class GameMaster : MonoBehaviour
         {
             //instance.StartCoroutine(FillHoles());
             instance.StartCoroutine(CollapseHoles());
+
+
         } else
         {
-            CheckForLines();
+            // weg wenn normal line clear da sein soll
+            FindObjectOfType<Spawner>().newBlock();
+            alreadySwitched = false;
+
+            //CheckForLines();
         }
         pause = false;
     }
